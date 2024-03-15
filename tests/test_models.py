@@ -188,8 +188,8 @@ class TestProductModel(unittest.TestCase):
         for product in found:
             self.assertEqual(product.price, price)
 
-    def test_find_by_price_String(self):
-        """It should Find a Product by Price"""
+    def test_find_by_price_string(self):
+        """It should Find a Product by Price as String"""
         products = ProductFactory.create_batch(5)
         for product in products:
             product.create()
@@ -223,3 +223,40 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.category, category)
+
+    def test_deserialize(self):
+        """It should be able to deserialize a dictionary"""
+        data = {
+            'name': 'Test Product',
+            'description': 'Test Description',
+            'price': 3.14,
+            'available': True,
+            'category': 'FOOD'
+        }
+        product = Product()
+        product.deserialize(data)
+        self.assertEqual(product.name, data["name"])
+        self.assertEqual(product.description, data["description"])
+        self.assertEqual(product.price, data["price"])
+        self.assertEqual(product.available, data["available"])
+        self.assertEqual(product.category, Category[data["category"]])
+
+    def test_deserialize_available_not_bool(self):
+        """It should be able to deserialize a dictionary available NOT bool"""
+        data = {
+            'name': 'Test Product',
+            'description': 'Test Description',
+            'price': 3.14,
+            'available': 'Yes',
+            'category': 'FOOD'
+        }
+        product = Product()
+        with self.assertRaises(DataValidationError):
+            product.deserialize(data)
+
+    def test_deserialize_available_invalid_attribute(self):
+        """It should be able to deserialize an invalid attribute"""
+        data = {'name': 'Test Product', 'description': 'Test Description', 'price': 3.14, 'available': True, 'category': True}
+        product = Product()
+        with self.assertRaises(DataValidationError):
+            product.deserialize(data)
